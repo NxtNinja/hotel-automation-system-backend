@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hotel     Hotel[]
+  bills     Bill[]
+}
+
+model Hotel {
+  id           String     @id @default(uuid())
+  name         String
+  address      String
+  user         User?      @relation(fields: [user_created], references: [id])
+  user_created String
+  rooms        Room[]
+  foodItems    FoodMenu[]
+  bills        Bill[]
+}
+
+model Room {
+  id           String   @id @default(uuid())
+  typeId       String // Add the typeId field
+  type         RoomType @relation(fields: [typeId], references: [id])
+  hotelId      String
+  hotel        Hotel    @relation(fields: [hotelId], references: [id])
+  capacity     Int
+  features     Json
+  price        Float
+  cleaningCost Float?
+  isOccupied   Boolean
+  floor        Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model RoomType {
+  id      String @id @default(uuid())
+  name    String
+  hotelId String
+  rooms   Room[]
+}
+
+model FoodMenu {
+  id      String @id @default(uuid())
+  hotel   Hotel  @relation(fields: [hotelId], references: [id])
+  hotelId String
+  items   Json
+}
+
+model Bill {
+  id          String   @id @default(uuid())
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  hotelId     String
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  items       Json // Contains details of rooms, food, deals, etc.
+  totalAmount Float
+  createdAt   DateTime @default(now())
+}
